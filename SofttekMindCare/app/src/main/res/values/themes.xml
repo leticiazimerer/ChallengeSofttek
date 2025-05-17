@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.SofttekMindCare" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/softtek_blue</item>
+        <item name="colorPrimaryVariant">@color/softtek_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/softtek_green</item>
+        <item name="colorSecondaryVariant">@color/softtek_light_green</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:colorBackground">@color/background</item>
+
+        <!-- Text colors -->
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+
+        <!-- Button styles -->
+        <item name="materialButtonStyle">@style/Widget.SofttekMindCare.Button</item>
+
+        <!-- CardView style -->
+        <item name="cardViewStyle">@style/CardView.SofttekMindCare</item>
+
+        <!-- Toolbar style -->
+        <item name="toolbarStyle">@style/Widget.SofttekMindCare.Toolbar</item>
+
+        <!-- Shape appearance -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.SofttekMindCare.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.SofttekMindCare.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.SofttekMindCare.LargeComponent</item>
+    </style>
+
+    <!-- Button style -->
+    <style name="Widget.SofttekMindCare.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/softtek_blue</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:paddingVertical">12dp</item>
+        <item name="android:paddingHorizontal">24dp</item>
+    </style>
+
+    <!-- CardView style -->
+    <style name="CardView.SofttekMindCare" parent="CardView">
+        <item name="cardBackgroundColor">@color/card_background</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardUseCompatPadding">true</item>
+        <item name="cardPreventCornerOverlap">false</item>
+    </style>
+
+    <!-- Toolbar style -->
+    <style name="Widget.SofttekMindCare.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
+        <item name="titleTextAppearance">@style/TextAppearance.SofttekMindCare.Toolbar.Title</item>
+        <item name="subtitleTextAppearance">@style/TextAppearance.SofttekMindCare.Toolbar.Subtitle</item>
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="navigationIconTint">@color/white</item>
+    </style>
+
+    <!-- Text appearances -->
+    <style name="TextAppearance.SofttekMindCare.Toolbar.Title" parent="TextAppearance.MaterialComponents.Toolbar.Title">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.SofttekMindCare.Toolbar.Subtitle" parent="TextAppearance.MaterialComponents.Toolbar.Subtitle">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Shape appearances -->
+    <style name="ShapeAppearance.SofttekMindCare.SmallComponent" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">4dp</item>
+    </style>
+
+    <style name="ShapeAppearance.SofttekMindCare.MediumComponent" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.SofttekMindCare.LargeComponent" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+</resources>

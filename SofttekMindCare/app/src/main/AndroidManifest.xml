@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.softtek.mindcare">
+
+    <!-- Permissões necessárias -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SofttekMindCare"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
+        <!-- Tela principal -->
+        <activity
+            android:name=".activities.DashboardActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Activities secundárias -->
+        <activity
+            android:name=".activities.MoodTrackerActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.DashboardActivity"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.QuestionnaireActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.DashboardActivity" />
+
+        <activity
+            android:name=".activities.SupportActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.DashboardActivity" />
+
+        <activity
+            android:name=".activities.StatisticsActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.DashboardActivity" />
+
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.DashboardActivity" />
+
+        <!-- Services -->
+        <service
+            android:name=".services.NotificationService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- Broadcast Receivers -->
+        <receiver
+            android:name=".services.ReminderReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Configuração de segurança de rede -->
+        <meta-data
+            android:name="android.security.net.config"
+            android:resource="@xml/network_security_config" />
+
+        <!-- Splash Screen API 31+ -->
+        <meta-data
+            android:name="android.window.SplashScreen.drawable"
+            android:resource="@drawable/splash_screen" />
+    </application>
+</manifest>
