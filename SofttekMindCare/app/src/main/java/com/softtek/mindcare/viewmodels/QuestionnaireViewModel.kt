@@ -4,53 +4,47 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.softtek.mindcare.api.ApiClient
-import com.softtek.mindcare.database.QuestionnaireDao
-import com.softtek.mindcare.models.Questionnaire
+import com.softtek.mindcare.models.Question
 import com.softtek.mindcare.models.QuestionnaireResponse
+import com.softtek.mindcare.repositories.QuestionnaireRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class QuestionnaireViewModel @Inject constructor(
-    private val questionnaireDao: QuestionnaireDao
+    private val repository: QuestionnaireRepository
 ) : ViewModel() {
-    private val _questionnaire = MutableLiveData<Questionnaire?>()
-    val questionnaire: LiveData<Questionnaire?> = _questionnaire
 
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _questions = MutableLiveData<List<Question>>()
+    val questions: LiveData<List<Question>> = _questions
 
-    private val userAnswers = mutableMapOf<Int, Any>()
+    private val _submissionSuccess = MutableLiveData<Boolean>()
+    val submissionSuccess: LiveData<Boolean> = _submissionSuccess
 
-    fun loadQuestionnaire() {
-        _isLoading.value = true
+    fun loadQuestions() {
         viewModelScope.launch {
             try {
-                val response = ApiClient.apiService.getQuestionnaires()
-                if (response.isSuccessful && response.body()?.isNotEmpty() == true) {
-                    _questionnaire.postValue(response.body()!![0])
-                }
+                val questionnaires = repository.fetchQuestionnaires()
+                _questions.postValue(questionnaires.firstOrNull()?.questions ?: emptyList())
             } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                _isLoading.postValue(false)
+                _questions.postValue(emptyList())
             }
         }
     }
 
-    fun saveAnswer(questionId: Int, answer: Any) {
-        userAnswers[questionId] = answer
-    }
-
-    fun submitQuestionnaire() {
+    fun submitResponses(answers: Map<Int, Any>) {
         viewModelScope.launch {
-            val response = QuestionnaireResponse(
-                timestamp = System.currentTimeMillis(),
-                answers = userAnswers.toMap()
-            )
-            questionnaireDao.insertResponse(response)
+            try {
+                val response = QuestionnaireResponse(
+                    questionnaireId = 1, // Default questionnaire ID
+                    answers = answers
+                )
+                repository.saveResponse(response)
+                _submissionSuccess.postValue(true)
+            } catch (e: Exception) {
+                _submissionSuccess.postValue(false)
+            }
         }
     }
 }

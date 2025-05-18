@@ -4,11 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.softtek.mindcare.database.MoodDao
-import com.softtek.mindcare.database.StressDao
-import com.softtek.mindcare.models.MoodEntry
-import com.softtek.mindcare.models.StressEntry
-import com.softtek.mindcare.models.SummaryData
+import com.softtek.mindcare.repositories.MoodRepository
+import com.softtek.mindcare.repositories.StressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.util.*
@@ -16,101 +13,58 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
-    private val moodDao: MoodDao,
-    private val stressDao: StressDao
+    private val moodRepository: MoodRepository,
+    private val stressRepository: StressRepository
 ) : ViewModel() {
-    private val _moodData = MutableLiveData<List<MoodEntry>>()
-    val moodData: LiveData<List<MoodEntry>> = _moodData
 
-    private val _stressData = MutableLiveData<List<StressEntry>>()
-    val stressData: LiveData<List<StressEntry>> = _stressData
+    private val _moodData = MutableLiveData<List<Pair<String, Float>>>()
+    val moodData: LiveData<List<Pair<String, Float>>> = _moodData
 
-    private val _summaryData = MutableLiveData<SummaryData>()
-    val summaryData: LiveData<SummaryData> = _summaryData
+    private val _stressData = MutableLiveData<List<Pair<String, Float>>>()
+    val stressData: LiveData<List<Pair<String, Float>>> = _stressData
 
-    fun loadData(range: TimeRange) {
+    private val _loading = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean> = _loading
+
+    fun loadWeeklyData() {
+        loadData(7)
+    }
+
+    fun loadMonthlyData() {
+        loadData(30)
+    }
+
+    private fun loadData(days: Int) {
+        _loading.postValue(true)
+
         viewModelScope.launch {
-            val (start, end) = when (range) {
-                TimeRange.WEEKLY -> getWeekRange()
-                TimeRange.MONTHLY -> getMonthRange()
-                TimeRange.YEARLY -> getYearRange()
-            }
+            val calendar = Calendar.getInstance()
+            val endDate = calendar.time
 
-            val moods = moodDao.getMoodEntriesBetweenDates(start, end)
-            _moodData.postValue(moods)
+            calendar.add(Calendar.DAY_OF_YEAR, -days)
+            val startDate = calendar.time
 
-            val stress = stressDao.getStressEntriesBetweenDates(start, end)
-            _stressData.postValue(stress)
+            val moodEntries = moodRepository.getMoodEntriesBetween(startDate, endDate)
+                .groupBy {
+                    SimpleDateFormat("EEE", Locale.getDefault()).format(Date(it.timestamp))
+                }
+                .mapValues { (_, entries) -> entries.map { it.intensity }.average().toFloat() }
+                .toList()
+                .sortedBy { it.first }
 
-            val avgMood = moodDao.getAverageMoodBetweenDates(start, end) ?: 0f
-            val avgStress = stressDao.getAverageStressBetweenDates(start, end) ?: 0f
-            val highStressDays = stressDao.getHighStressDaysBetweenDates(start, end, 7f)
-            val lowMoodDays = moodDao.getLowMoodDaysBetweenDates(start, end, 2.5f)
+            _moodData.postValue(moodEntries)
 
-            _summaryData.postValue(
-                SummaryData(
-                    avgMood = avgMood,
-                    avgStress = avgStress,
-                    highStressDays = highStressDays,
-                    lowMoodDays = lowMoodDays
-                )
-            )
+            val stressEntries = stressRepository.getStressEntriesBetween(startDate, endDate)
+                .groupBy {
+                    SimpleDateFormat("EEE", Locale.getDefault()).format(Date(it.timestamp))
+                }
+                .mapValues { (_, entries) -> entries.map { it.level }.average().toFloat() }
+                .toList()
+                .sortedBy { it.first }
+
+            _stressData.postValue(stressEntries)
+
+            _loading.postValue(false)
         }
     }
-
-    private fun getWeekRange(): Pair<Long, Long> {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        val start = calendar.timeInMillis
-
-        calendar.add(Calendar.DAY_OF_YEAR, 6)
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        val end = calendar.timeInMillis
-
-        return start to end
-    }
-
-    private fun getMonthRange(): Pair<Long, Long> {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.DAY_OF_MONTH, 1)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        val start = calendar.timeInMillis
-
-        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        val end = calendar.timeInMillis
-
-        return start to end
-    }
-
-    private fun getYearRange(): Pair<Long, Long> {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.DAY_OF_YEAR, 1)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        val start = calendar.timeInMillis
-
-        calendar.set(Calendar.MONTH, 11)
-        calendar.set(Calendar.DAY_OF_MONTH, 31)
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        val end = calendar.timeInMillis
-
-        return start to end
-    }
-}
-
-enum class TimeRange {
-    WEEKLY, MONTHLY, YEARLY
 }

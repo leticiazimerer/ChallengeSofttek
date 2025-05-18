@@ -1,28 +1,26 @@
 package com.softtek.mindcare.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.softtek.mindcare.R
-import com.softtek.mindcare.utils.PreferencesManager
+import com.softtek.mindcare.repositories.SettingsRepository
+import com.softtek.mindcare.utils.WorkManagerUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val preferencesManager: PreferencesManager
+    private val repository: SettingsRepository,
+    private val workManagerUtils: WorkManagerUtils
 ) : ViewModel() {
-    private val _notificationsEnabled = MutableLiveData<Boolean>()
-    val notificationsEnabled: LiveData<Boolean> = _notificationsEnabled
 
-    private val _remindersEnabled = MutableLiveData<Boolean>()
-    val remindersEnabled: LiveData<Boolean> = _remindersEnabled
+    private val _settings = MutableLiveData<UserSettings>()
+    val settings: LiveData<UserSettings> = _settings
 
-    private val _reminderTime = MutableLiveData<Pair<Int, Int>>()
-    val reminderTime: LiveData<Pair<Int, Int>> = _reminderTime
+    private val _saveSuccess = MutableLiveData<Boolean>()
+    val saveSuccess: LiveData<Boolean> = _saveSuccess
 
     init {
         loadSettings()
@@ -30,42 +28,57 @@ class SettingsViewModel @Inject constructor(
 
     private fun loadSettings() {
         viewModelScope.launch {
-            _notificationsEnabled.postValue(preferencesManager.getNotificationsEnabled())
-            _remindersEnabled.postValue(preferencesManager.getRemindersEnabled())
-            _reminderTime.postValue(preferencesManager.getReminderTime())
+            repository.getSettings()?.let { settings ->
+                _settings.postValue(settings)
+                updateReminderSchedule(settings)
+            }
         }
     }
 
-    fun setNotificationsEnabled(enabled: Boolean) {
+    fun updateNotificationSetting(enabled: Boolean) {
         viewModelScope.launch {
-            preferencesManager.setNotificationsEnabled(enabled)
-            _notificationsEnabled.postValue(enabled)
+            _settings.value?.let { currentSettings ->
+                val updatedSettings = currentSettings.copy(notificationsEnabled = enabled)
+                repository.saveSettings(updatedSettings)
+                _settings.postValue(updatedSettings)
+            }
         }
     }
 
-    fun setRemindersEnabled(enabled: Boolean) {
+    fun updateReminderSetting(enabled: Boolean) {
         viewModelScope.launch {
-            preferencesManager.setRemindersEnabled(enabled)
-            _remindersEnabled.postValue(enabled)
+            _settings.value?.let { currentSettings ->
+                val updatedSettings = currentSettings.copy(remindersEnabled = enabled)
+                repository.saveSettings(updatedSettings)
+                _settings.postValue(updatedSettings)
+                updateReminderSchedule(updatedSettings)
+            }
         }
     }
 
-    fun setReminderTime(hour: Int, minute: Int) {
+    fun updateReminderTime(hour: Int, minute: Int) {
         viewModelScope.launch {
-            preferencesManager.setReminderTime(hour, minute)
-            _reminderTime.postValue(hour to minute)
+            _settings.value?.let { currentSettings ->
+                val updatedSettings = currentSettings.copy(
+                    reminderHour = hour,
+                    reminderMinute = minute
+                )
+                repository.saveSettings(updatedSettings)
+                _settings.postValue(updatedSettings)
+                updateReminderSchedule(updatedSettings)
+            }
         }
     }
 
-    fun openPrivacyPolicy(context: Context) {
-        Toast.makeText(context, "Opening Privacy Policy", Toast.LENGTH_SHORT).show()
-    }
-
-    fun showAboutDialog(context: Context) {
-        AlertDialog.Builder(context)
-            .setTitle("About Softtek MindCare")
-            .setMessage("Version 1.0\n\nDeveloped for Softtek employees' mental health support")
-            .setPositiveButton("OK", null)
-            .show()
+    private fun updateReminderSchedule(settings: UserSettings) {
+        if (settings.remindersEnabled) {
+            workManagerUtils.scheduleDailyReminder(
+                context = getApplication(),
+                hour = settings.reminderHour,
+                minute = settings.reminderMinute
+            )
+        } else {
+            workManagerUtils.cancelReminders(getApplication())
+        }
     }
 }

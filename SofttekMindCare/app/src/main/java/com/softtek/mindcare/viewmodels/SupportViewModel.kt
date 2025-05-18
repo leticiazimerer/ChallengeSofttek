@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.softtek.mindcare.models.SupportResource
 import com.softtek.mindcare.repositories.SupportRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -14,44 +15,45 @@ import javax.inject.Inject
 class SupportViewModel @Inject constructor(
     private val repository: SupportRepository
 ) : ViewModel() {
+
     private val _supportResources = MutableLiveData<List<SupportResource>>()
     val supportResources: LiveData<List<SupportResource>> = _supportResources
 
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _favoriteResources = MutableLiveData<List<SupportResource>>()
+    val favoriteResources: LiveData<List<SupportResource>> = _favoriteResources
 
-    private val _favorites = MutableLiveData<List<SupportResource>>()
-    val favorites: LiveData<List<SupportResource>> = _favorites
+    private val _loading = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean> = _loading
+
+    init {
+        loadSupportResources()
+        loadFavorites()
+    }
 
     fun loadSupportResources() {
-        _isLoading.value = true
         viewModelScope.launch {
+            _loading.postValue(true)
             try {
-                _supportResources.postValue(repository.getSupportResources())
-                loadFavorites()
-            } finally {
-                _isLoading.postValue(false)
+                val resources = repository.refreshSupportResources()
+                _supportResources.postValue(resources)
+            } catch (e: Exception) {
+                _supportResources.postValue(emptyList())
+            }
+            _loading.postValue(false)
+        }
+    }
+
+    fun loadFavorites() {
+        viewModelScope.launch {
+            repository.getFavorites().collect { favorites ->
+                _favoriteResources.postValue(favorites)
             }
         }
     }
 
-    fun loadEmergencyResources() {
+    fun toggleFavorite(resource: SupportResource) {
         viewModelScope.launch {
-            _supportResources.postValue(repository.getEmergencyResources())
-        }
-    }
-
-    private fun loadFavorites() {
-        viewModelScope.launch {
-            repository.getFavoriteResources().collect { favs ->
-                _favorites.postValue(favs)
-            }
-        }
-    }
-
-    fun toggleFavorite(resourceId: Int) {
-        viewModelScope.launch {
-            repository.toggleFavorite(resourceId)
+            repository.toggleFavorite(resource)
         }
     }
 }

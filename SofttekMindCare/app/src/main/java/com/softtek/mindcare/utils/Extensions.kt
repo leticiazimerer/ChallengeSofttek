@@ -4,63 +4,39 @@ import android.content.Context
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.StringRes
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.softtek.mindcare.R
-import java.text.SimpleDateFormat
-import java.util.*
+import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
 
-fun Context.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, message, duration).show()
 }
 
-fun Context.showToast(@StringRes resId: Int, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, resId, duration).show()
+fun Context.toast(@StringRes messageRes: Int, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, messageRes, duration).show()
 }
 
-fun View.visible() {
-    visibility = View.VISIBLE
+fun Fragment.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+    requireContext().toast(message, duration)
 }
 
-fun View.gone() {
-    visibility = View.GONE
+fun Fragment.toast(@StringRes messageRes: Int, duration: Int = Toast.LENGTH_SHORT) {
+    requireContext().toast(messageRes, duration)
 }
 
-fun View.invisible() {
-    visibility = View.INVISIBLE
-}
-
-fun Long.toFormattedDate(): String {
-    val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-    return sdf.format(Date(this))
-}
-
-fun BarChart.setupDefaultConfig() {
-    description.isEnabled = false
-    setDrawGridBackground(false)
-    setTouchEnabled(true)
-    isDragEnabled = true
-    setScaleEnabled(true)
-    setPinchZoom(true)
-
-    xAxis.position = XAxis.XAxisPosition.BOTTOM
-    xAxis.setDrawGridLines(false)
-    xAxis.granularity = 1f
-
-    axisLeft.apply {
-        axisMinimum = 0f
-        granularity = 1f
+fun View.showSnackbar(
+    message: String,
+    duration: Int = Snackbar.LENGTH_SHORT,
+    actionText: String? = null,
+    action: (() -> Unit)? = null
+) {
+    val snackbar = Snackbar.make(this, message, duration)
+    actionText?.let {
+        snackbar.setAction(it) { action?.invoke() }
     }
-
-    axisRight.isEnabled = false
-    legend.isEnabled = false
+    snackbar.show()
 }
 
-fun List<BarEntry>.toBarDataSet(label: String, color: Int): BarDataSet {
-    return BarDataSet(this, label).apply {
-        this.color = color
-        valueTextColor = color
-    }
+fun Date.toFormattedString(format: String = "dd/MM/yyyy HH:mm"): String {
+    val sdf = java.text.SimpleDateFormat(format, Locale.getDefault())
+    return sdf.format(this)
 }
