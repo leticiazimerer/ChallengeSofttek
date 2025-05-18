@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
 import com.softtek.mindcare.databinding.ItemMoodEntryBinding
 import com.softtek.mindcare.models.MoodEntry
 import java.text.SimpleDateFormat
@@ -29,31 +28,26 @@ class MoodAdapter : ListAdapter<MoodEntry, MoodAdapter.MoodViewHolder>(MoodDiffC
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(entry: MoodEntry) {
-            with(binding) {
-                moodType.text = entry.moodType
-                intensityProgress.progress = entry.intensity
-                intensityText.text = "${entry.intensity}/5"
+            binding.moodType.text = entry.moodType
+            binding.intensityProgress.progress = entry.intensity
+            binding.intensityText.text = "${entry.intensity}/5"
+            binding.timestamp.text = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+                .format(Date(entry.timestamp))
 
-                entry.note?.let {
-                    moodNote.text = it
-                    moodNote.visibility = View.VISIBLE
-                } ?: run {
-                    moodNote.visibility = View.GONE
-                }
-
-                val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-                timestamp.text = dateFormat.format(Date(entry.timestamp))
+            entry.note?.let {
+                binding.moodNote.text = it
+                binding.moodNote.visibility = View.VISIBLE
+            } ?: run {
+                binding.moodNote.visibility = View.GONE
             }
         }
     }
 
-    private class MoodDiffCallback : DiffUtil.ItemCallback<MoodEntry>() {
-        override fun areItemsTheSame(oldItem: MoodEntry, newItem: MoodEntry): Boolean {
-            return oldItem.id == newItem.id
-        }
+    class MoodDiffCallback : DiffUtil.ItemCallback<MoodEntry>() {
+        override fun areItemsTheSame(oldItem: MoodEntry, newItem: MoodEntry) =
+            oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: MoodEntry, newItem: MoodEntry): Boolean {
-            return oldItem == newItem
-        }
+        override fun areContentsTheSame(oldItem: MoodEntry, newItem: MoodEntry) =
+            oldItem == newItem
     }
 }

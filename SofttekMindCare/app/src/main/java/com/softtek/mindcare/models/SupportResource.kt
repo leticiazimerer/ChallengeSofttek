@@ -11,4 +11,10 @@ data class SupportResource(
     val type: String,
     val url: String,
     val isFavorite: Boolean = false
-)
+) {
+    companion object {
+        const val TYPE_PHONE = "PHONE"
+        const val TYPE_EMAIL = "EMAIL"
+        const val TYPE_URL = "URL"
+    }
+}

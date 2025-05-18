@@ -70,14 +70,14 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <!-- Broadcast Receivers -->
-        <receiver
-            android:name=".services.ReminderReceiver"
+        <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+        <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+        <receiver android:name=".services.ReminderReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.TIME_SET" />
-                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
 

@@ -14,37 +14,27 @@ class MoodTrackerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMoodTrackerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        viewModel = ViewModelProvider(this).get(MoodTrackerViewModel::class.java)
-
-        setupUI()
-        setupMoodSelection()
+        viewModel = ViewModelProvider(this)[MoodTrackerViewModel::class.java]
+        setupMoodButtons()
+        setupSaveButton()
     }
 
-    private fun setupUI() {
-        binding.saveButton.setOnClickListener {
-            val selectedMood = viewModel.selectedMood.value
-            val intensity = binding.intensitySlider.value.toInt()
-            val note = binding.noteEditText.text.toString()
-
-            if (selectedMood != null) {
-                viewModel.saveMoodEntry(selectedMood, intensity, note)
-                finish()
-            }
+    private fun setupMoodButtons() {
+        binding.happyButton.setOnClickListener { viewModel.selectMood("Feliz") }
+        binding.sadButton.setOnClickListener { viewModel.selectMood("Triste") }
+        binding.angryButton.setOnClickListener { viewModel.selectMood("Nervoso") }
+        viewModel.selectedMood.observe(this) { mood ->
+            binding.selectedMoodText.text = mood ?: "Selecione um humor"
         }
     }
 
-    private fun setupMoodSelection() {
-        binding.happyButton.setOnClickListener { viewModel.selectMood("Happy") }
-        binding.sadButton.setOnClickListener { viewModel.selectMood("Sad") }
-        binding.angryButton.setOnClickListener { viewModel.selectMood("Angry") }
-        binding.anxiousButton.setOnClickListener { viewModel.selectMood("Anxious") }
-        binding.calmButton.setOnClickListener { viewModel.selectMood("Calm") }
-        binding.tiredButton.setOnClickListener { viewModel.selectMood("Tired") }
-        binding.excitedButton.setOnClickListener { viewModel.selectMood("Excited") }
-
-        viewModel.selectedMood.observe(this) { mood ->
-            binding.selectedMoodText.text = mood ?: "Select a mood"
+    private fun setupSaveButton() {
+        binding.saveButton.setOnClickListener {
+            viewModel.saveMoodEntry(
+                binding.moodNote.text.toString(),
+                binding.intensitySlider.value.toInt()
+            )
+            finish()
         }
     }
 

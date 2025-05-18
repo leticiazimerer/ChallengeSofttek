@@ -8,7 +8,7 @@ import com.softtek.mindcare.models.Question
 import com.softtek.mindcare.models.QuestionType
 
 class QuestionAdapter(
-    private val onAnswerSelected: (Question, Any) -> Unit
+    private val onAnswerSelected: (Int, Any) -> Unit
 ) : RecyclerView.Adapter<QuestionAdapter.QuestionViewHolder>() {
 
     private var questions: List<Question> = emptyList()
@@ -31,94 +31,59 @@ class QuestionAdapter(
         holder.bind(questions[position])
     }
 
-    override fun getItemCount(): Int = questions.size
+    override fun getItemCount() = questions.size
 
     class QuestionViewHolder(
         private val binding: ItemQuestionBinding,
-        private val onAnswerSelected: (Question, Any) -> Unit
+        private val onAnswerSelected: (Int, Any) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(question: Question) {
-            with(binding) {
-                questionText.text = question.text
+            binding.questionText.text = question.text
 
-                when (question.type) {
-                    QuestionType.RADIO -> setupRadioOptions(question)
-                    QuestionType.CHECKBOX -> setupCheckboxOptions(question)
-                    QuestionType.SCALE -> setupScaleOptions(question)
-                }
+            when (question.type) {
+                QuestionType.RADIO -> setupRadioOptions(question)
+                QuestionType.CHECKBOX -> setupCheckboxOptions(question)
+                QuestionType.SCALE -> setupScaleOptions(question)
             }
         }
 
         private fun setupRadioOptions(question: Question) {
-            with(binding) {
-                radioGroup.visibility = View.VISIBLE
-                checkboxGroup.visibility = View.GONE
-                scaleLayout.visibility = View.GONE
-
-                radioGroup.removeAllViews()
-                question.options.forEachIndexed { index, option ->
-                    val radioButton = RadioButton(context).apply {
-                        text = option
-                        id = View.generateViewId()
-                        setOnCheckedChangeListener { _, isChecked ->
-                            if (isChecked) onAnswerSelected(question, option)
-                        }
+            binding.radioGroup.removeAllViews()
+            question.options.forEachIndexed { index, option ->
+                val radioButton = RadioButton(binding.root.context).apply {
+                    text = option
+                    setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) onAnswerSelected(question.id, option)
                     }
-                    radioGroup.addView(radioButton)
                 }
+                binding.radioGroup.addView(radioButton)
             }
         }
 
         private fun setupCheckboxOptions(question: Question) {
-            with(binding) {
-                radioGroup.visibility = View.GONE
-                checkboxGroup.visibility = View.VISIBLE
-                scaleLayout.visibility = View.GONE
-
-                checkboxGroup.removeAllViews()
-                question.options.forEachIndexed { index, option ->
-                    val checkBox = CheckBox(context).apply {
-                        text = option
-                        id = View.generateViewId()
-                        setOnCheckedChangeListener { _, isChecked ->
-                            val answers = checkboxGroup.getCheckedOptions()
-                            onAnswerSelected(question, answers)
-                        }
+            binding.checkboxGroup.removeAllViews()
+            question.options.forEach { option ->
+                val checkBox = CheckBox(binding.root.context).apply {
+                    text = option
+                    setOnCheckedChangeListener { _, _ ->
+                        val selected = binding.checkboxGroup.getCheckedOptions()
+                        onAnswerSelected(question.id, selected)
                     }
-                    checkboxGroup.addView(checkBox)
                 }
+                binding.checkboxGroup.addView(checkBox)
             }
         }
 
         private fun setupScaleOptions(question: Question) {
-            with(binding) {
-                radioGroup.visibility = View.GONE
-                checkboxGroup.visibility = View.GONE
-                scaleLayout.visibility = View.VISIBLE
-
-                scaleText.text = question.options.firstOrNull() ?: "0"
-                scaleSeekBar.max = (question.options.size - 1).coerceAtLeast(0)
-
-                scaleSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        scaleText.text = question.options[progress]
-                        if (fromUser) {
-                            onAnswerSelected(question, progress)
-                        }
-                    }
-                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-                })
-            }
+            binding.scaleSeekBar.max = question.options.size - 1
+            binding.scaleSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                    if (fromUser) onAnswerSelected(question.id, progress)
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+            })
         }
     }
-}
-
-fun ViewGroup.getCheckedOptions(): List<String> {
-    return (0 until childCount)
-        .map { getChildAt(it) }
-        .filterIsInstance<CheckBox>()
-        .filter { it.isChecked }
-        .map { it.text.toString() }
 }

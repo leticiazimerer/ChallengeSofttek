@@ -8,7 +8,7 @@ import java.util.*
 @Dao
 interface MoodDao {
     @Insert
-    suspend fun insertMoodEntry(entry: MoodEntry)
+    suspend fun insert(entry: MoodEntry)
 
     @Query("SELECT * FROM mood_entries ORDER BY timestamp DESC")
     fun getAllEntries(): Flow<List<MoodEntry>>
@@ -19,9 +19,9 @@ interface MoodDao {
     @Query("SELECT AVG(intensity) FROM mood_entries WHERE timestamp BETWEEN :start AND :end")
     suspend fun getAverageMoodBetweenDates(start: Long, end: Long): Float?
 
-    @Query("SELECT COUNT(*) FROM mood_entries WHERE intensity < :threshold AND timestamp BETWEEN :start AND :end")
-    suspend fun getLowMoodDaysBetweenDates(start: Long, end: Long, threshold: Float): Int
+    @Query("SELECT * FROM mood_entries WHERE id = :id")
+    suspend fun getEntryById(id: Int): MoodEntry?
 
-    @Query("SELECT * FROM mood_entries ORDER BY timestamp DESC LIMIT 1")
-    suspend fun getLatestEntry(): MoodEntry?
+    @Query("DELETE FROM mood_entries WHERE id = :id")
+    suspend fun deleteById(id: Int)
 }

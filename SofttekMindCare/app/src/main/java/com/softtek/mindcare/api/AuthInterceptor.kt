@@ -8,7 +8,7 @@ class AuthInterceptor : Interceptor {
         val request = chain.request().newBuilder()
             .addHeader("Accept", "application/json")
             .addHeader("Content-Type", "application/json")
-            .addHeader("X-App-Id", "softtek-mindcare-android")
+            .addHeader("Authorization", "Bearer YOUR_API_KEY")
             .build()
         return chain.proceed(request)
     }

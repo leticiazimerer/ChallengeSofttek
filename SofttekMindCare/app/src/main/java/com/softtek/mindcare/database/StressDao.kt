@@ -8,7 +8,7 @@ import java.util.*
 @Dao
 interface StressDao {
     @Insert
-    suspend fun insertStressEntry(entry: StressEntry)
+    suspend fun insert(entry: StressEntry)
 
     @Query("SELECT * FROM stress_entries ORDER BY timestamp DESC")
     fun getAllEntries(): Flow<List<StressEntry>>
@@ -20,5 +20,5 @@ interface StressDao {
     suspend fun getAverageStressBetweenDates(start: Long, end: Long): Float?
 
     @Query("SELECT COUNT(*) FROM stress_entries WHERE level > :threshold AND timestamp BETWEEN :start AND :end")
-    suspend fun getHighStressDaysBetweenDates(start: Long, end: Long, threshold: Float): Int
+    suspend fun countHighStressDays(start: Long, end: Long, threshold: Float): Int
 }

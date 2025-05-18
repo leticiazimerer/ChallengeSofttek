@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "user_settings")
-data class UserResponse(
+data class UserSettings(
     @PrimaryKey val id: Int = 1,
     val notificationsEnabled: Boolean = true,
     val remindersEnabled: Boolean = true,

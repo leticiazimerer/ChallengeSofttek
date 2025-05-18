@@ -1,6 +1,5 @@
 package com.softtek.mindcare.api
 
-import com.softtek.mindcare.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -9,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     private const val BASE_URL = "https://api.softtek-mindcare.com/v1/"
-    private const val TIMEOUT = 30L
+    private const val TIMEOUT_SECONDS = 30L
 
     val apiService: ApiInterface by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -23,9 +22,8 @@ object ApiClient {
         val client = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .addInterceptor(AuthInterceptor())
-            .connectTimeout(TIMEOUT, TimeUnit.SECONDS)
-            .readTimeout(TIMEOUT, TimeUnit.SECONDS)
-            .writeTimeout(TIMEOUT, TimeUnit.SECONDS)
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
         Retrofit.Builder()

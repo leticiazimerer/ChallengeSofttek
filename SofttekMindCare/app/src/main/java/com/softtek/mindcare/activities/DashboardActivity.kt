@@ -14,57 +14,36 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        viewModel = ViewModelProvider(this).get(DashboardViewModel::class.java)
-
+        viewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
         setupUI()
         observeViewModel()
     }
 
     private fun setupUI() {
-        binding.todayButton.setOnClickListener { viewModel.setTimeRange(TimeRange.TODAY) }
-        binding.weeklyButton.setOnClickListener { viewModel.setTimeRange(TimeRange.WEEKLY) }
-        binding.monthlyButton.setOnClickListener { viewModel.setTimeRange(TimeRange.MONTHLY) }
-
         binding.moodTrackerCard.setOnClickListener {
             startActivity(MoodTrackerActivity.newIntent(this))
         }
-
         binding.questionnaireCard.setOnClickListener {
             startActivity(QuestionnaireActivity.newIntent(this))
         }
-
         binding.supportCard.setOnClickListener {
             startActivity(SupportActivity.newIntent(this))
         }
-
         binding.statisticsCard.setOnClickListener {
             startActivity(StatisticsActivity.newIntent(this))
         }
     }
 
     private fun observeViewModel() {
-        viewModel.currentTimeRange.observe(this) { range ->
-            updateTimeRangeUI(range)
-            viewModel.loadData(range)
+        viewModel.userName.observe(this) { name ->
+            binding.welcomeText.text = "Olá, $name"
         }
-
-        viewModel.averageMood.observe(this) { avg ->
-            binding.avgMoodValue.text = String.format("%.1f", avg ?: 0f)
-        }
-
-        viewModel.latestMood.observe(this) { mood ->
-            binding.currentMoodValue.text = mood?.moodType ?: "N/A"
+        viewModel.lastMood.observe(this) { mood ->
+            binding.lastMoodText.text = mood?.moodType ?: "Não registrado"
         }
     }
 
-    private fun updateTimeRangeUI(range: TimeRange) {
-        binding.todayButton.isSelected = range == TimeRange.TODAY
-        binding.weeklyButton.isSelected = range == TimeRange.WEEKLY
-        binding.monthlyButton.isSelected = range == TimeRange.MONTHLY
+    companion object {
+        fun newIntent(context: Context) = Intent(context, DashboardActivity::class.java)
     }
-}
-
-enum class TimeRange {
-    TODAY, WEEKLY, MONTHLY
 }

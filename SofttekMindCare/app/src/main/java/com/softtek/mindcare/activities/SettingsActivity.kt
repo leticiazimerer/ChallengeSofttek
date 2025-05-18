@@ -14,54 +14,30 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        viewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
-
-        setupUI()
-        observeViewModel()
-        viewModel.loadSettings()
+        viewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
+        setupSwitches()
+        setupTimePicker()
     }
 
-    private fun setupUI() {
+    private fun setupSwitches() {
+        binding.notificationsSwitch.isChecked = viewModel.notificationsEnabled
+        binding.remindersSwitch.isChecked = viewModel.remindersEnabled
+
         binding.notificationsSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setNotificationsEnabled(isChecked)
         }
 
         binding.remindersSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setRemindersEnabled(isChecked)
-        }
-
-        binding.reminderTimePicker.setIs24HourView(true)
-        binding.reminderTimePicker.setOnTimeChangedListener { _, hour, minute ->
-            viewModel.setReminderTime(hour, minute)
-        }
-
-        binding.privacyPolicyButton.setOnClickListener {
-            viewModel.openPrivacyPolicy(this)
-        }
-
-        binding.aboutButton.setOnClickListener {
-            viewModel.showAboutDialog(this)
-        }
-
-        binding.backButton.setOnClickListener {
-            finish()
+            binding.reminderTimePicker.visibility = if (isChecked) VISIBLE else GONE
         }
     }
 
-    private fun observeViewModel() {
-        viewModel.notificationsEnabled.observe(this) { enabled ->
-            binding.notificationsSwitch.isChecked = enabled
-        }
-
-        viewModel.remindersEnabled.observe(this) { enabled ->
-            binding.remindersSwitch.isChecked = enabled
-            binding.reminderTimePicker.visibility = if (enabled) View.VISIBLE else View.GONE
-        }
-
-        viewModel.reminderTime.observe(this) { time ->
-            binding.reminderTimePicker.hour = time.first
-            binding.reminderTimePicker.minute = time.second
+    private fun setupTimePicker() {
+        binding.reminderTimePicker.hour = viewModel.reminderHour
+        binding.reminderTimePicker.minute = viewModel.reminderMinute
+        binding.reminderTimePicker.setOnTimeChangedListener { _, hour, minute ->
+            viewModel.setReminderTime(hour, minute)
         }
     }
 

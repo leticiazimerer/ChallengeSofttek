@@ -1,42 +1,43 @@
 package com.softtek.mindcare.services
 
 import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.softtek.mindcare.R
-import com.softtek.mindcare.activities.DashboardActivity
 
 class NotificationService(private val context: Context) {
-    fun showWellbeingReminder() {
-        val intent = Intent(context, DashboardActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(context, MIND_CARE_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_mindcare_notification)
-            .setContentTitle(context.getString(R.string.app_name))
-            .setContentText("Time to check your wellbeing")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
-
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(WELLBEING_NOTIFICATION_ID, notification)
+    companion object {
+        const val CHANNEL_ID = "mindcare_notifications"
     }
 
-    companion object {
-        const val MIND_CARE_CHANNEL_ID = "mind_care_channel"
-        const val WELLBEING_NOTIFICATION_ID = 1
+    init {
+        createNotificationChannel()
+    }
+
+    private fun createNotificationChannel() {
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "MindCare Notifications",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Wellbeing reminders and alerts"
+        }
+
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(channel)
+    }
+
+    fun showReminderNotification() {
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("MindCare Check-in")
+            .setContentText("Time to log your mood and stress levels")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.notify(1, notification)
     }
 }
